@@ -4,14 +4,14 @@ import { api } from "../axios/axios-config";
 export const profileAPI = {
     postProfile: async (credentials) => {
         const token = localStorage.getItem("token");
+        console.log("token",token);
         try {
           const response = await api.post(
             '/api/createProfile',
             credentials,
             {  
               headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}` // Tambahkan token di sini
+                'x-access-token': token  // Tambahkan token di sini
               },
             }
           );
@@ -40,12 +40,18 @@ export const profileAPI = {
       },
       
   putProfile: async (credentials) => {
-    // const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
+    console.log("token",token);
     try {
-      // URL berubah dari '/api/login' menjadi '/login'
-      const response = await api.post('/api/updateProfile', credentials,{  headers: {
-        'Content-Type': 'application/json',
-      },});
+      const response = await api.put(
+        '/api/updateProfile',
+        credentials,
+        {  
+          headers: {
+            'x-access-token': token  // Tambahkan token di sini
+          },
+        }
+      );
       console.log(response.data);
       return response.data;
     } catch (error) {

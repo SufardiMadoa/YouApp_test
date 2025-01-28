@@ -84,11 +84,15 @@
   transition: all 0.2s ease;
 } */
 
-.input-gradient:focus {
+.input-gradient:focus{
   border: double 1px transparent;
   background-image: linear-gradient(#09141A, #09141A), 
                     linear-gradient(to right, #94783E, #F3EDA6, #D5BE88);
   background-origin: border-box;
   background-clip: padding-box, border-box;
   outline: none;
+}@layer utilities {
+  .mask-white {
+    filter: brightness(0) invert(1);
+  }
 }

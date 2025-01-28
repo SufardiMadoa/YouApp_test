@@ -52,11 +52,16 @@ function Page() {
         username: formData.username,
         password: formData.password
       });
-
-      // Menyimpan token di localStorage
-      localStorage.setItem('token', response.access_token);
+      if(response.access_token === undefined){
+        toast.error("Invalid username or password");
+      }
+      else{
+        // Menyimpan token di localStorage
+        localStorage.setItem('token', response.access_token);
+        router.push('/profile');
       toast.success("Login successful!");
-      router.push('/profile'); // Redirect setelah login berhasil
+      }
+      // Redirect setelah login berhasil
     } catch (error) {
       if (error.name === "ZodError") {
         // Menangani error validasi
@@ -109,9 +114,9 @@ function Page() {
             type="text"
             value={formData.username}
             onChange={handleChange}
-            className="w-full h-[51px] border-none bg-white bg-opacity-[6%] placeholder:font-medium placeholder:text-white/40 placeholder:text-medium placeholder:text-[13px]"
+            className="input-gradient w-full h-[51px] border-none bg-white bg-opacity-[6%] placeholder:font-medium placeholder:text-white/40 placeholder:text-medium placeholder:text-[13px]"
             placeholder="Enter Username"
-          />
+          />  
           {errors.username && (
             <p className="text-red-500 text-sm mt-1">{errors.username}</p>
           )}
