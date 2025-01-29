@@ -9,92 +9,117 @@ import Image from "next/image";
 const Page = () => {
   const [profileData, setProfileData] = useState(null);
 
+  // const getZodiac = (month, day) => {
+  //   const zodiacSigns = [
+  //     {
+  //       sign: "Capricorn",
+  //       start: { month: 12, day: 22 },
+  //       end: { month: 1, day: 19 },
+  //     },
+  //     {
+  //       sign: "Aquarius",
+  //       start: { month: 1, day: 20 },
+  //       end: { month: 2, day: 18 },
+  //     },
+  //     {
+  //       sign: "Pisces",
+  //       start: { month: 2, day: 19 },
+  //       end: { month: 3, day: 20 },
+  //     },
+  //     {
+  //       sign: "Aries",
+  //       start: { month: 3, day: 21 },
+  //       end: { month: 4, day: 19 },
+  //     },
+  //     {
+  //       sign: "Taurus",
+  //       start: { month: 4, day: 20 },
+  //       end: { month: 5, day: 20 },
+  //     },
+  //     {
+  //       sign: "Gemini",
+  //       start: { month: 5, day: 21 },
+  //       end: { month: 6, day: 20 },
+  //     },
+  //     {
+  //       sign: "Cancer",
+  //       start: { month: 6, day: 21 },
+  //       end: { month: 7, day: 22 },
+  //     },
+  //     { sign: "Leo", start: { month: 7, day: 23 }, end: { month: 8, day: 22 } },
+  //     {
+  //       sign: "Virgo",
+  //       start: { month: 8, day: 23 },
+  //       end: { month: 9, day: 22 },
+  //     },
+  //     {
+  //       sign: "Libra",
+  //       start: { month: 9, day: 23 },
+  //       end: { month: 10, day: 22 },
+  //     },
+  //     {
+  //       sign: "Scorpio",
+  //       start: { month: 10, day: 23 },
+  //       end: { month: 11, day: 21 },
+  //     },
+  //     {
+  //       sign: "Sagittarius",
+  //       start: { month: 11, day: 22 },
+  //       end: { month: 12, day: 21 },
+  //     },
+  //   ];
   const getZodiac = (month, day) => {
     const zodiacSigns = [
-      {
-        sign: "Capricorn",
-        start: { month: 12, day: 22 },
-        end: { month: 1, day: 19 },
-      },
-      {
-        sign: "Aquarius",
-        start: { month: 1, day: 20 },
-        end: { month: 2, day: 18 },
-      },
-      {
-        sign: "Pisces",
-        start: { month: 2, day: 19 },
-        end: { month: 3, day: 20 },
-      },
-      {
-        sign: "Aries",
-        start: { month: 3, day: 21 },
-        end: { month: 4, day: 19 },
-      },
-      {
-        sign: "Taurus",
-        start: { month: 4, day: 20 },
-        end: { month: 5, day: 20 },
-      },
-      {
-        sign: "Gemini",
-        start: { month: 5, day: 21 },
-        end: { month: 6, day: 20 },
-      },
-      {
-        sign: "Cancer",
-        start: { month: 6, day: 21 },
-        end: { month: 7, day: 22 },
-      },
-      { sign: "Leo", start: { month: 7, day: 23 }, end: { month: 8, day: 22 } },
-      {
-        sign: "Virgo",
-        start: { month: 8, day: 23 },
-        end: { month: 9, day: 22 },
-      },
-      {
-        sign: "Libra",
-        start: { month: 9, day: 23 },
-        end: { month: 10, day: 22 },
-      },
-      {
-        sign: "Scorpio",
-        start: { month: 10, day: 23 },
-        end: { month: 11, day: 21 },
-      },
-      {
-        sign: "Sagittarius",
-        start: { month: 11, day: 22 },
-        end: { month: 12, day: 21 },
-      },
+      { sign: "Capricorn", start: "12-22", end: "01-19" },
+      { sign: "Aquarius", start: "01-20", end: "02-18" },
+      { sign: "Pisces", start: "02-19", end: "03-20" },
+      { sign: "Aries", start: "03-21", end: "04-19" },
+      { sign: "Taurus", start: "04-20", end: "05-20" },
+      { sign: "Gemini", start: "05-21", end: "06-20" },
+      { sign: "Cancer", start: "06-21", end: "07-22" },
+      { sign: "Leo", start: "07-23", end: "08-22" },
+      { sign: "Virgo", start: "08-23", end: "09-22" },
+      { sign: "Libra", start: "09-23", end: "10-22" },
+      { sign: "Scorpio", start: "10-23", end: "11-21" },
+      { sign: "Sagittarius", start: "11-22", end: "12-21" },
     ];
-
+  
+    // Handle Capricorn's special case (spans across year end)
+    if (month === 12 && day >= 22) return "Capricorn";
+    if (month === 1 && day <= 19) return "Capricorn";
+  
     return (
       zodiacSigns.find(({ start, end }) => {
-        return (
-          (month === start.month && day >= start.day) ||
-          (month === end.month && day <= end.day)
-        );
+        const [startMonth, startDay] = start.split("-").map(Number);
+        const [endMonth, endDay] = end.split("-").map(Number);
+        
+        if (month === startMonth) {
+          return day >= startDay;
+        }
+        if (month === endMonth) {
+          return day <= endDay;
+        }
+        return false;
       })?.sign || ""
     );
   };
 
   const getHoroscope = (zodiac) => {
     const horoscopes = {
-      Aries: "Rat",
-      Taurus: "Ox",
-      Gemini: "Tiger",
-      Cancer: "Rabbit",
-      Leo: "Dragon",
-      Virgo: "Snake",
-      Libra: "Horse",
-      Scorpio: "Goat",
-      Sagittarius: "Monkey",
-      Capricorn: "Rooster",
-      Aquarius: "Dog",
-      Pisces: "Pig",
+      Aries: "Dragon",     // Changed to match traditional Chinese zodiac
+      Taurus: "Snake",
+      Gemini: "Horse",
+      Cancer: "Goat",
+      Leo: "Monkey",
+      Virgo: "Rooster",
+      Libra: "Dog",
+      Scorpio: "Pig",
+      Sagittarius: "Rat",
+      Capricorn: "Ox",
+      Aquarius: "Tiger",
+      Pisces: "Rabbit"
     };
-
+  
     return horoscopes[zodiac] || "";
   };
 
@@ -108,6 +133,10 @@ const Page = () => {
       data.weight
     );
   };
+  const hasInterestData = (data) => {
+    if (!data) return false;
+    return data.interests && data.interests.length > 0;
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -116,16 +145,16 @@ const Page = () => {
         console.error("No token found in localStorage");
         return;
       }
-
+  
       try {
         const response = await profileAPI.getProfile(token);
         const data = response.data;
-
+  
         if (data.birthday) {
           const [day, month, year] = data.birthday.split(" ").map(Number);
-          const zodiac = getZodiac(month, day);
-          const horoscope = getHoroscope(zodiac);
-
+          const zodiac = getZodiac(month, day);        // Get zodiac first
+          const horoscope = getHoroscope(zodiac);      // Then get horoscope based on zodiac
+  
           setProfileData({
             ...data,
             zodiac,
@@ -138,7 +167,7 @@ const Page = () => {
         console.error("Error fetching profile:", error);
       }
     };
-
+  
     fetchProfile();
   }, []);
 
@@ -166,7 +195,7 @@ const Page = () => {
                 {profileData.horoscope && (
                   <span className=" flex gap-2 p-4 justify-center items-center h-[36px] bg-white bg-opacity-[6%] rounded-[100px]">
                     <Image
-                      src={`/zodiac/${profileData.zodiac}.png`}
+                      src={`/horoscope/${profileData.horoscope}.png`}
                       alt="Vercel Logo"
                       className="mask mask-white"
                       width={20}
@@ -228,7 +257,7 @@ const Page = () => {
                     <span className=" text-[13px] flex font-medium">
                       <p className="text-white opacity-[33%]"> Zodiac: </p>{" "}
                       <p className="text-white text-opacity-100">
-                        {profileData.zodiac}
+                        {profileData.horoscope}
                       </p>
                     </span>
                   )}
@@ -237,7 +266,7 @@ const Page = () => {
                     <span className=" text-[13px] flex font-medium">
                       <p className="text-white opacity-[33%]"> Horoscope: </p>{" "}
                       <p className="text-white text-opacity-100">
-                        {profileData.horoscope}
+                        {profileData.zodiac}
                       </p>
                     </span>
                   )}
@@ -246,7 +275,7 @@ const Page = () => {
                     <span className=" text-[13px] flex font-medium">
                       <p className="text-white opacity-[33%]"> Height: </p>{" "}
                       <p className="text-white text-opacity-100">
-                        {profileData.height}
+                        {profileData.height} cm
                       </p>
                     </span>
                   )}
@@ -254,7 +283,7 @@ const Page = () => {
                     <span className=" text-[13px] flex font-medium">
                       <p className="text-white opacity-[33%]"> Weight: </p>{" "}
                       <p className="text-white text-opacity-100">
-                        {profileData.weight}
+                        {profileData.weight} kg
                       </p>
                     </span>
                   )}
@@ -272,23 +301,26 @@ const Page = () => {
                   <PencilLine />
                 </Link>
               </span>
-              <div
-                className="flex flex-wrap gap-2   rounded-[100px]"
-                style={{ minHeight: "36px" }}
-              >
-                {profileData.interests.map((interest, index) => (
-                  <div
-                    key={index}
-                    className="  bg-[#D9D9D930] px-3 py-1 rounded-lg text-white text-sm"
-                  >
-                    <span>{interest}</span>
-                  </div>
-                ))}
-              </div>
-              <p className="text-[15px] font-medium opacity-[52%]">
-                Lorem ipsum dolor sit, amet consectetur adipisicing elit. Atque,
-                esse?
-              </p>
+              {hasInterestData(profileData) ? (
+                <div
+                  className="flex flex-wrap gap-2   rounded-[100px]"
+                  style={{ minHeight: "36px" }}
+                >
+                  {profileData.interests.map((interest, index) => (
+                    <div
+                      key={index}
+                      className="  bg-[#D9D9D930] px-3 py-1 rounded-lg text-white text-sm"
+                    >
+                      <span>{interest}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[15px] font-medium opacity-[52%]">
+                  Lorem ipsum dolor, sit amet consectetur adipisicing elit.
+                  Unde, exercitationem.
+                </p>
+              )}
               {/* <p className="font-bold text-[16px]">@{profileData.username},</p>
                 <p className="text-[13px] font-medium">male</p> */}
             </div>

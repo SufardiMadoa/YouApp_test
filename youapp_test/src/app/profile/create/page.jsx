@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { profileAPI } from "../../api/profile/profile";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const Page = () => {
   const router = useRouter();
@@ -47,18 +48,20 @@ const Page = () => {
       { sign: "Scorpio", start: "10-23", end: "11-21" },
       { sign: "Sagittarius", start: "11-22", end: "12-21" },
     ];
-  
-    return zodiacSigns.find(({ start, end }) => {
-      const [startMonth, startDay] = start.split("-").map(Number);
-      const [endMonth, endDay] = end.split("-").map(Number);
-  
-      return (
-        (month === startMonth && day >= startDay) ||
-        (month === endMonth && day <= endDay)
-      );
-    })?.sign || "";
+
+    return (
+      zodiacSigns.find(({ start, end }) => {
+        const [startMonth, startDay] = start.split("-").map(Number);
+        const [endMonth, endDay] = end.split("-").map(Number);
+
+        return (
+          (month === startMonth && day >= startDay) ||
+          (month === endMonth && day <= endDay)
+        );
+      })?.sign || ""
+    );
   };
-  
+
   const getHoroscope = (zodiac) => {
     const horoscopes = {
       Aries: "Rat",
@@ -74,15 +77,15 @@ const Page = () => {
       Aquarius: "Dog",
       Pisces: "Pig",
     };
-  
+
     return horoscopes[zodiac] || "";
   };
-  
+
   const handleBirthdateChange = (dateString) => {
     const [year, month, day] = dateString.split("-").map(Number);
     const zodiac = getZodiac(month, day);
     const horoscope = getHoroscope(zodiac);
-  
+
     setProfileData((prevData) => ({
       ...prevData,
       birthday: dateString, // Store the original format in state
@@ -90,7 +93,10 @@ const Page = () => {
       horoscope,
     }));
   };
-  
+  const hasInterestData = (data) => {
+    if (!data) return false;
+    return data.interests && data.interests.length > 0;
+  };
   useEffect(() => {
     const fetchProfile = async () => {
       const token = localStorage.getItem("token");
@@ -118,7 +124,7 @@ const Page = () => {
       zodiac: "",
       height: "",
       weight: "",
-      interests: [""]
+      interests: [],
     });
   }, []);
 
@@ -134,9 +140,9 @@ const Page = () => {
   };
 
   const handleInputChange = (field, value) => {
-    setProfileData(prev => ({
+    setProfileData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -159,16 +165,17 @@ const Page = () => {
         interests: profileData.interests,
       };
       console.log("Data yang dikirimkan:", formattedData);
-  
+
       const response = await profileAPI.postProfile(formattedData);
       console.log("Profile updated successfully:", response);
+      router.push('/profile');
     } catch (error) {
       console.error("Error updating profile:", error);
     } finally {
       setIsLoading(false);
     }
   };
-  
+
   const handleBack = () => {
     router.back();
   };
@@ -179,7 +186,10 @@ const Page = () => {
         <div className="flex flex-col gap-6">
           {/* Header */}
           <div className="mt-[37px] flex items-center relative">
-            <Button  onClick={handleBack} className="bg-transparent p-0 absolute left-0">
+            <Button
+              onClick={handleBack}
+              className="bg-transparent p-0 absolute left-0"
+            >
               <ChevronLeft /> Back
             </Button>
             <p className="mx-auto font-bold">@{data.username}</p>
@@ -191,12 +201,12 @@ const Page = () => {
           <div className="bg-[#0E191F] rounded-lg p-6">
             <div className="flex justify-between items-center mb-4">
               <p className="font-bold text-lg">About</p>
-              <Button 
+              <Button
                 className="relative text-[13px] font-medium bg-gradient-to-r from-[#94783E] via-[#F3EDA6] to-[#D5BE88] bg-clip-text text-transparent"
                 onClick={handleSubmit}
                 disabled={isLoading}
               >
-                {isLoading ? 'Updating...' : 'Save & Update'}
+                {isLoading ? "Updating..." : "Save & Update"}
               </Button>
             </div>
 
@@ -239,7 +249,7 @@ const Page = () => {
                 <Input
                   value={profileData.name}
                   placeholder="Enter Name"
-                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  onChange={(e) => handleInputChange("name", e.target.value)}
                   className="w-[202px] h-[36px] bg-[#D9D9D90F] bg-opacity-[6%] border-none placeholder:font-medium placeholder:text-white/40 text-white text-right font-medium text-[13px]"
                 />
               </div>
@@ -249,9 +259,9 @@ const Page = () => {
                 <Label className="text-white opacity-[33%] text-[13px] font-medium">
                   Gender:
                 </Label>
-                <Select 
+                <Select
                   value={profileData.gender}
-                  onValueChange={(value) => handleInputChange('gender', value)}
+                  onValueChange={(value) => handleInputChange("gender", value)}
                 >
                   <SelectTrigger className="w-[202px] justify-end gap-2 text-right h-[36px] bg-[#D9D9D90F] bg-opacity-[6%] border-none">
                     <SelectValue placeholder="Select Gender" />
@@ -280,57 +290,82 @@ const Page = () => {
 
               {/* Other fields */}
               <div className="flex flex-row justify-between items-center gap-2">
-  <Label className="text-white opacity-[33%] text-[13px] font-medium">Horoscope:</Label>
- <Input
-  value={profileData.zodiac}
-  placeholder="Auto-filled"
-  readOnly
-  className="w-[202px] h-[36px] bg-[#D9D9D90F] bg-opacity-[6%] border-none placeholder:font-medium placeholder:text-white/40 text-white text-right font-medium text-[13px]"
-/>
-</div>
+                <Label className="text-white opacity-[33%] text-[13px] font-medium">
+                  Horoscope:
+                </Label>
+                <Input
+                  value={profileData.zodiac}
+                  placeholder="--"
+                  readOnly
+                  className="w-[202px] h-[36px] bg-[#D9D9D90F] bg-opacity-[6%] border-none placeholder:font-medium placeholder:text-white/40 text-white text-right font-medium text-[13px]"
+                />
+              </div>
 
-<div className="flex flex-row justify-between items-center gap-2">
-  <Label className="text-white opacity-[33%] text-[13px] font-medium">Zodiac:</Label>
+              <div className="flex flex-row justify-between items-center gap-2">
+                <Label className="text-white opacity-[33%] text-[13px] font-medium">
+                  Zodiac:
+                </Label>
 
+                <Input
+                  value={profileData.horoscope}
+                  placeholder="--"
+                  readOnly
+                  className="w-[202px] h-[36px] bg-[#D9D9D90F] bg-opacity-[6%] border-none placeholder:font-medium placeholder:text-white/40 text-white text-right font-medium text-[13px]"
+                />
+              </div>
 
-<Input
-  value={profileData.horoscope}
-  placeholder="Auto-filled"
-  readOnly
-  className="w-[202px] h-[36px] bg-[#D9D9D90F] bg-opacity-[6%] border-none placeholder:font-medium placeholder:text-white/40 text-white text-right font-medium text-[13px]"
-/>
-</div>
-
-<div className="flex flex-row justify-between items-center gap-2">
-  <Label className="text-white opacity-[33%] text-[13px] font-medium">Height:</Label>
-  <Input
-    value={profileData.height}
-    placeholder="Add height"
-    onChange={(e) => handleInputChange("height", e.target.value)}
-    className="w-[202px] h-[36px] bg-[#D9D9D90F] bg-opacity-[6%] border-none placeholder:font-medium placeholder:text-white/40 text-white text-right font-medium text-[13px]"
-  />
-</div>
-<div className="flex flex-row justify-between items-center gap-2">
-  <Label className="text-white opacity-[33%] text-[13px] font-medium">Weight:</Label>
-  <Input
-    value={profileData.weight}
-    placeholder="Add weight"
-    onChange={(e) => handleInputChange("weight", e.target.value)}
-    className="w-[202px] h-[36px] bg-[#D9D9D90F] bg-opacity-[6%] border-none placeholder:font-medium placeholder:text-white/40 text-white text-right font-medium text-[13px]"
-  />
-</div>
+              <div className="flex flex-row justify-between items-center gap-2">
+                <Label className="text-white opacity-[33%] text-[13px] font-medium">
+                  Height:
+                </Label>
+                <Input
+                  value={profileData.height}
+                  placeholder="Add height"
+                  onChange={(e) => handleInputChange("height", e.target.value)}
+                  className="w-[202px] h-[36px] bg-[#D9D9D90F] bg-opacity-[6%] border-none placeholder:font-medium placeholder:text-white/40 text-white text-right font-medium text-[13px]"
+                />
+              </div>
+              <div className="flex flex-row justify-between items-center gap-2">
+                <Label className="text-white opacity-[33%] text-[13px] font-medium">
+                  Weight:
+                </Label>
+                <Input
+                  value={profileData.weight}
+                  placeholder="Add weight"
+                  onChange={(e) => handleInputChange("weight", e.target.value)}
+                  className="w-[202px] h-[36px] bg-[#D9D9D90F] bg-opacity-[6%] border-none placeholder:font-medium placeholder:text-white/40 text-white text-right font-medium text-[13px]"
+                />
+              </div>
             </div>
           </div>
-
           {/* Interest Section */}
           <div className="mt-2 bg-[#0E191F] w-full gap-2 rounded-lg flex flex-col justify-end p-5">
             <span className="header flex justify-between">
               <p>Interest</p>
-              <PencilLine />
+              <Link href="/profile/interests">
+                <PencilLine />
+              </Link>
             </span>
-            <p className="text-[15px] font-medium opacity-[52%]">
-              Lorem ipsum dolor sit, amet consectetur adipisicing elit. Atque, esse?
-            </p>
+            {hasInterestData(data) ? (
+              <div
+                className="flex flex-wrap gap-2   rounded-[100px]"
+                style={{ minHeight: "36px" }}
+              >
+                {data.interests.map((interest, index) => (
+                  <div
+                    key={index}
+                    className="  bg-[#D9D9D930] px-3 py-1 rounded-lg text-white text-sm"
+                  >
+                    <span>{interest}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[15px] font-medium opacity-[52%]">
+                Lorem ipsum dolor, sit amet consectetur adipisicing elit. Unde,
+                exercitationem.
+              </p>
+            )}
           </div>
         </div>
       ) : (

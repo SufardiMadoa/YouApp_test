@@ -16,6 +16,7 @@ import {
 import { profileAPI } from "../../api/profile/profile";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 
 const Page = () => {
   const router = useRouter();
@@ -47,20 +48,26 @@ const Page = () => {
       { sign: "Virgo", start: "08-23", end: "09-22" },
       { sign: "Libra", start: "09-23", end: "10-22" },
       { sign: "Scorpio", start: "10-23", end: "11-21" },
-      { sign: "Sagittarius", start: "11-22", end: "12-21" },
+      { sign: "Sagittarius", start: "11-22", end: "12-21" }
     ];
-
-    return (
-      zodiacSigns.find(({ start, end }) => {
-        const [startMonth, startDay] = start.split("-").map(Number);
-        const [endMonth, endDay] = end.split("-").map(Number);
-
-        return (
-          (month === startMonth && day >= startDay) ||
-          (month === endMonth && day <= endDay)
-        );
-      })?.sign || ""
-    );
+  
+    // Handle Capricorn special case
+    if ((month === 12 && day >= 22) || (month === 1 && day <= 19)) {
+      return "Capricorn";
+    }
+  
+    const currentDate = `${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+    
+    return zodiacSigns.find(({ start, end }) => {
+      const [startMonth, startDay] = start.split("-").map(Number);
+      const [endMonth, endDay] = end.split("-").map(Number);
+      
+      const dateToCheck = new Date(2000, month - 1, day);
+      const startDate = new Date(2000, startMonth - 1, startDay);
+      const endDate = new Date(2000, endMonth - 1, endDay);
+      
+      return dateToCheck >= startDate && dateToCheck <= endDate;
+    })?.sign || "";
   };
   const convertDateFormat = (dateStr) => {
     if (!dateStr) return "";
@@ -70,36 +77,56 @@ const Page = () => {
   };
   const getHoroscope = (zodiac) => {
     const horoscopes = {
-      Aries: "Rat",
-      Taurus: "Ox",
-      Gemini: "Tiger",
-      Cancer: "Rabbit",
-      Leo: "Dragon",
-      Virgo: "Snake",
-      Libra: "Horse",
-      Scorpio: "Goat",
-      Sagittarius: "Monkey",
-      Capricorn: "Rooster",
-      Aquarius: "Dog",
-      Pisces: "Pig",
-    };
+        Aries: "Dragon",     // Changed to match traditional Chinese zodiac
+        Taurus: "Snake",
+        Gemini: "Horse",
+        Cancer: "Goat",
+        Leo: "Monkey",
+        Virgo: "Rooster",
+        Libra: "Dog",
+        Scorpio: "Pig",
+        Sagittarius: "Rat",
+        Capricorn: "Ox",
+        Aquarius: "Tiger",
+        Pisces: "Rabbit"
+      };
 
     return horoscopes[zodiac] || "";
   };
 
   const handleBirthdateChange = (dateString) => {
+    if (!dateString) return;
+    
     const [year, month, day] = dateString.split("-").map(Number);
+    if (!year || !month || !day) return;
+  
     const zodiac = getZodiac(month, day);
     const horoscope = getHoroscope(zodiac);
-
+  
     setProfileData((prevData) => ({
       ...prevData,
-      birthday: dateString, // Store the original format in state
-      zodiac,
-      horoscope,
+      birthday: dateString,
+      zodiac: zodiac,
+      horoscope: horoscope
     }));
   };
-
+  useEffect(() => {
+    if (data?.birthday) {
+      const [day, month, year] = data.birthday.split(" ").map(Number);
+      if (month && day) {
+        const zodiac = getZodiac(month, day);
+        const horoscope = getHoroscope(zodiac);
+        const formattedDate = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+  
+        setProfileData(prev => ({
+          ...prev,
+          birthday: formattedDate,
+          zodiac: zodiac,
+          horoscope: horoscope
+        }));
+      }
+    }
+  }, [data]);
   useEffect(() => {
     const fetchProfile = async () => {
       const token = localStorage.getItem("token");
@@ -123,17 +150,20 @@ const Page = () => {
   }, []);
 
   useEffect(() => {
-    setProfileData({
-      name: "",
-      gender: "",
-      birthday: "",
-      horoscope: "",
-      zodiac: "",
-      height: "",
-      weight: "",
-      interests: [""],
-    });
-  }, []);
+    if(data){
+
+        setProfileData({
+            name: data.name || "",
+            gender: data.gender || "",
+            birthday: data.birthday ? convertDateFormat(data.birthday) : "",
+            horoscope: data.horoscope || "",
+            zodiac: data.zodiac || "",
+            height: data.height || "",
+            weight: data.weight || "",
+            interests: data.interests || [],
+        });
+    }
+  }, [data]);
   const handleHeightChange = (e) => {
     // Extract number from input (remove non-digits)
     const value = e.target.value.replace(/[^\d]/g, "");
@@ -187,16 +217,17 @@ const Page = () => {
     try {
       const formattedData = {
         name: profileData.name,
-        birthday: formatDate(profileData.birthday), // This will now return "DD MM YYYY"
-        height: parseInt(profileData.height),
-        weight: parseInt(profileData.weight),
-        horoscope: profileData.horoscope.toLowerCase(),
-        interests: profileData.interests,
+        birthday: formatDate(profileData.birthday),
+        height: parseInt(profileData.height) || 0,
+        weight: parseInt(profileData.weight) || 0,
+        horoscope: profileData.horoscope?.toLowerCase() || "",
+        zodiac: profileData.zodiac || "",
+        interests: profileData.interests || []
       };
-      console.log("Data yang dikirimkan:", formattedData);
-
+  
       const response = await profileAPI.putProfile(formattedData);
       console.log("Profile updated successfully:", response);
+      router.push('/profile');
     } catch (error) {
       console.error("Error updating profile:", error);
     } finally {
@@ -205,9 +236,17 @@ const Page = () => {
   };
 
   const handleBack = () => {
-    router.back();
+    try {
+      router.back();
+    } catch (error) {
+      // Fallback to pushing to a specific route if router.back() fails
+      router.push('/'); // or any default fallback route
+    }
   };
-
+  const hasInterestData = (data) => {
+    if (!data) return false;
+    return data.interests && data.interests.length > 0;
+  };
   return (
     <div className="min-h-screen flex flex-col p-[18px] bg-[#09141A] text-white">
       {data ? (
@@ -231,7 +270,7 @@ const Page = () => {
               {profileData.horoscope && (
                 <span className=" flex gap-2 p-4 justify-center items-center h-[36px] bg-white bg-opacity-[6%] rounded-[100px]">
                   <Image
-                    src={`/zodiac/${profileData.zodiac}.png`}
+                    src={`/zodiac/${profileData.horoscope}.png`}
                     alt="Vercel Logo"
                     className="mask mask-white"
                     width={20}
@@ -246,7 +285,7 @@ const Page = () => {
               {profileData.zodiac && (
                 <span className=" flex gap-2 p-4 justify-center items-center h-[36px] bg-white bg-opacity-[6%] rounded-[100px]">
                   <Image
-                    src={`/zodiac/${profileData.zodiac}.png`}
+                    src={`/horoscope/${profileData.zodiac}.png`}
                     alt="Vercel Logo"
                     className="mask mask-white"
                     width={20}
@@ -267,19 +306,16 @@ const Page = () => {
               <Button
                 className="relative text-[13px] font-medium bg-gradient-to-r from-[#94783E] via-[#F3EDA6] to-[#D5BE88] bg-clip-text text-transparent"
                 onClick={handleSubmit}
-                disabled={isLoading}
-              >
+                disabled={isLoading} >
                 {isLoading ? "Updating..." : "Save & Update"}
               </Button>
             </div>
-
             <div className="flex flex-col gap-4">
               {/* Upload Image */}
               <div className="flex flex-row gap-2 items-center">
                 <label
                   htmlFor="image-upload"
-                  className="w-[57px] h-[57px] flex items-center justify-center bg-gray-800 rounded-lg cursor-pointer overflow-hidden"
-                >
+                  className="w-[57px] h-[57px] flex items-center justify-center bg-gray-800 rounded-lg cursor-pointer overflow-hidden" >
                   {image ? (
                     <img
                       src={image}
@@ -310,7 +346,7 @@ const Page = () => {
                   Display Name:
                 </Label>
                 <Input
-                  defaultValue={data.name}
+                  defaultValue={profileData.name}
                   placeholder="Enter Name"
                   onChange={(e) => handleInputChange("name", e.target.value)}
                   className="w-[202px] h-[36px] bg-[#D9D9D90F] bg-opacity-[6%] border-none placeholder:font-medium placeholder:text-white/40 text-white text-right font-medium text-[13px]"
@@ -408,12 +444,30 @@ const Page = () => {
           <div className="mt-2 bg-[#0E191F] w-full gap-2 rounded-lg flex flex-col justify-end p-5">
             <span className="header flex justify-between">
               <p>Interest</p>
-              <PencilLine />
+              <Link href="/profile/interests">
+                  <PencilLine />
+                </Link>
             </span>
-            <p className="text-[15px] font-medium opacity-[52%]">
-              Lorem ipsum dolor sit, amet consectetur adipisicing elit. Atque,
-              esse?
-            </p>
+            {hasInterestData(data) ?(
+                <div
+                className="flex flex-wrap gap-2   rounded-[100px]"
+                style={{ minHeight: "36px" }}
+                >
+                {data.interests.map((interest, index) => (
+                  <div
+                    key={index}
+                    className="  bg-[#D9D9D930] px-3 py-1 rounded-lg text-white text-sm"
+                    >
+                    <span>{interest}</span>
+                  </div>
+                ))}
+              </div>
+              ) :(
+
+                <p className="text-[15px] font-medium opacity-[52%]">
+                Lorem ipsum dolor, sit amet consectetur adipisicing elit. Unde, exercitationem.
+              </p>
+              )}
           </div>
         </div>
       ) : (

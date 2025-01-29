@@ -1,7 +1,7 @@
-'use client';
+"use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { loginSchema } from "@/app/api/schema/LoginSchema";
@@ -14,22 +14,23 @@ function Page() {
   const [formData, setFormData] = useState({
     email: "",
     username: "",
-    password: ""
+    password: "",
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
     // Clear error when user types
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
-        [name]: ""
+        [name]: "",
       }));
     }
   };
@@ -45,21 +46,20 @@ function Page() {
     try {
       // Validasi form data
       loginSchema.parse(formData);
-      console.log("Data yang dikirimkan:", formData);  // Debugging log
+      console.log("Data yang dikirimkan:", formData); // Debugging log
       setIsLoading(true);
       const response = await loginApi.postLogin({
         email: formData.email,
         username: formData.username,
-        password: formData.password
+        password: formData.password,
       });
-      if(response.access_token === undefined){
+      if (response.access_token === undefined) {
         toast.error("Invalid username or password");
-      }
-      else{
+      } else {
         // Menyimpan token di localStorage
-        localStorage.setItem('token', response.access_token);
-        router.push('/profile');
-      toast.success("Login successful!");
+        localStorage.setItem("token", response.access_token);
+        router.push("/profile");
+        toast.success("Login successful!");
       }
       // Redirect setelah login berhasil
     } catch (error) {
@@ -93,7 +93,10 @@ function Page() {
         <p className="font-bold text-white">Login</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="form-input gap-4 flex flex-col items-center m-0">
+      <form
+        onSubmit={handleSubmit}
+        className="form-input gap-4 flex flex-col items-center m-0"
+      >
         <div className="mt-[25px] ml-[0px] w-full max-w-[327px]">
           <Input
             name="email"
@@ -116,21 +119,28 @@ function Page() {
             onChange={handleChange}
             className="input-gradient w-full h-[51px] border-none bg-white bg-opacity-[6%] placeholder:font-medium placeholder:text-white/40 placeholder:text-medium placeholder:text-[13px]"
             placeholder="Enter Username"
-          />  
+          />
           {errors.username && (
             <p className="text-red-500 text-sm mt-1">{errors.username}</p>
           )}
         </div>
 
-        <div className="w-full max-w-[327px]">
+        <div className="w-full max-w-[327px] relative">
           <Input
             name="password"
-            type="password"
+            type={showPassword ? "text" : "password"}
             value={formData.password}
             onChange={handleChange}
             className="w-full h-[51px] border-none bg-white bg-opacity-[6%] placeholder:font-medium placeholder:text-white/40 placeholder:text-medium placeholder:text-[13px]"
             placeholder="Enter Password"
           />
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white"
+          >
+            {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
+          </button>
           {errors.password && (
             <p className="text-red-500 text-sm mt-1">{errors.password}</p>
           )}
@@ -142,11 +152,11 @@ function Page() {
             disabled={isLoading || !isFormComplete()}
             className={`w-full h-[48px] rounded-lg font-bold text-[16px] bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-300 ${
               isFormComplete()
-                ? 'opacity-100 shadow-lg shadow-blue-500/50 hover:shadow-xl'
-                : 'opacity-[30%]'
+                ? "opacity-100 shadow-lg shadow-blue-500/50 hover:shadow-xl"
+                : "opacity-[30%]"
             }`}
           >
-            {isLoading ? 'Loading...' : 'Login'}
+            {isLoading ? "Loading..." : "Login"}
           </Button>
         </div>
 

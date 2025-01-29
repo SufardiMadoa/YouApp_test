@@ -3,10 +3,12 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Plus } from "lucide-react";
 import { profileAPI } from "../../api/profile/profile";
+import { useRouter } from "next/navigation";
 const Page = () => {
   const [interests, setInterests] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter();
   const [data, setData] = useState({
     name: "",
     birthday: "",
@@ -48,6 +50,7 @@ const Page = () => {
       console.log("Data yang dikirimkan:", formattedData);
       const response = await profileAPI.putProfile(formattedData);
       console.log("Profile updated successfully:", response);
+      router.push('/profile');
     } catch (error) {
       console.error("Error updating profile:", error);
     } finally {
@@ -89,11 +92,13 @@ const Page = () => {
   const handleRemoveInterest = (index) => {
     setInterests(interests.filter((_, i) => i !== index));
   };
-
+  const handleBack = () => {
+    router.back();
+  };
   return (
     <div className="min-h-screen flex flex-col p-[18px] bg-gradient-to-bl from-[#1F4247] via-[#0D1D23] to-[#09141A]">
       <div className="mt-[37px] flex items-center justify-between relative text-white">
-        <Button className="bg-transparent p-0 left-0">
+        <Button onClick={handleBack} className="bg-transparent p-0 left-0">
           <ChevronLeft /> Back
         </Button>
         <Button 
